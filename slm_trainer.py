@@ -141,7 +141,7 @@ class SLMTrainer:
         self.sample_losses: Optional[Dict[int, Dict[str, Union[float, bool]]]] = None
 
     def _create_dataloader(
-            self, texts: List[str], labels: List[str], shuffle: bool = True
+        self, texts: List[str], labels: List[str], shuffle: bool = True
     ) -> DataLoader:
         """
         Create a PyTorch DataLoader for the given texts and labels.
@@ -168,7 +168,9 @@ class SLMTrainer:
         # Create and return DataLoader
         return DataLoader(dataset, batch_size=self.batch_size, shuffle=shuffle)
 
-    def _mixup(self, embeddings: torch.Tensor, labels: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _mixup(
+        self, embeddings: torch.Tensor, labels: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Apply mixup augmentation to embeddings and labels.
 
@@ -204,7 +206,9 @@ class SLMTrainer:
         indices = torch.randperm(batch_size, device=embeddings.device)
 
         # Mix embeddings
-        mixed_embeddings = lam_tensor * embeddings + (1 - lam_tensor) * embeddings[indices]
+        mixed_embeddings = (
+            lam_tensor * embeddings + (1 - lam_tensor) * embeddings[indices]
+        )
 
         # Convert labels to one-hot
         one_hot_labels = torch.zeros(
@@ -217,16 +221,20 @@ class SLMTrainer:
             lam, device=embeddings.device, dtype=one_hot_labels.dtype
         ).view(batch_size, 1)
 
-        mixed_labels = lam_for_labels * one_hot_labels + (1 - lam_for_labels) * one_hot_labels[indices]
+        mixed_labels = (
+            lam_for_labels * one_hot_labels
+            + (1 - lam_for_labels) * one_hot_labels[indices]
+        )
 
         return mixed_embeddings, mixed_labels
+
     def train(
-            self,
-            labeled_data: List[Tuple[str, str]],
-            validation_data: Optional[List[Tuple[str, str]]] = None,
-            epochs: int = 5,
-            warmup_steps: int = 0,
-            gmm_threshold: float = 0.7,
+        self,
+        labeled_data: List[Tuple[str, str]],
+        validation_data: Optional[List[Tuple[str, str]]] = None,
+        epochs: int = 5,
+        warmup_steps: int = 0,
+        gmm_threshold: float = 0.7,
     ) -> torch.nn.Module:
         """
         Train the model with robust techniques including mixup, consistency regularization,
@@ -265,7 +273,7 @@ class SLMTrainer:
         print(f"Classifier type: {type(self.model.classifier)}")
 
         # Check if there's a pooler
-        if hasattr(self.model.base_model, 'pooler'):
+        if hasattr(self.model.base_model, "pooler"):
             print(f"Pooler type: {type(self.model.base_model.pooler)}")
         else:
             print("No pooler found in base model")
@@ -353,7 +361,9 @@ class SLMTrainer:
                                 embeddings = embedding_layer(input_ids)
 
                             print("Step 2: Applying mixup...")
-                            mixed_embeddings, mixed_labels = self._mixup(embeddings, labels)
+                            mixed_embeddings, mixed_labels = self._mixup(
+                                embeddings, labels
+                            )
 
                             print("Step 3: Forward pass with mixed embeddings...")
                             # Use the correct parameter name 'inputs_embeds' instead of trying to replace the embedding layer
@@ -368,7 +378,8 @@ class SLMTrainer:
                             print("Step 4: Calculating mixup loss...")
                             mixup_loss = torch.mean(
                                 torch.sum(
-                                    -mixed_labels * torch.log_softmax(mixed_logits, dim=-1),
+                                    -mixed_labels
+                                    * torch.log_softmax(mixed_logits, dim=-1),
                                     dim=-1,
                                 )
                             )
@@ -381,6 +392,7 @@ class SLMTrainer:
                         except Exception as e:
                             print(f"Error during mixup: {e}")
                             import traceback
+
                             traceback.print_exc()
                     # Apply consistency regularization
                     # This encourages the model to make similar predictions for
@@ -390,8 +402,15 @@ class SLMTrainer:
                         orig_logits = logits.detach().clone()
 
                         # Create augmented versions of the texts in this batch
-                        batch_texts = [texts[idx.item()] for idx in batch_indices if idx.item() < len(texts)]
-                        augmented_texts = [modifications.drop_word_text_augmentation(text) for text in batch_texts]
+                        batch_texts = [
+                            texts[idx.item()]
+                            for idx in batch_indices
+                            if idx.item() < len(texts)
+                        ]
+                        augmented_texts = [
+                            modifications.drop_word_text_augmentation(text)
+                            for text in batch_texts
+                        ]
 
                         if augmented_texts:  # Make sure we have texts to process
                             # Tokenize augmented texts
@@ -424,7 +443,8 @@ class SLMTrainer:
                                 loss = loss + self.consistency_weight * consistency_loss
                             else:
                                 print(
-                                    f"Skipping consistency loss - batch size mismatch: {orig_logits.size(0)} vs {aug_logits.size(0)}")
+                                    f"Skipping consistency loss - batch size mismatch: {orig_logits.size(0)} vs {aug_logits.size(0)}"
+                                )
 
                     except Exception as e:
                         print(f"Consistency regularization error: {e}")
@@ -614,7 +634,9 @@ class SLMTrainer:
         all_labels = list(self.label_map.keys())
         if len(all_labels) == 0:
             raise ValueError("No labels available")
-        dummy_labels = [all_labels[0]] * len(texts)  # Dummy labels, not used for prediction
+        dummy_labels = [all_labels[0]] * len(
+            texts
+        )  # Dummy labels, not used for prediction
         dataloader = self._create_dataloader(texts, dummy_labels, shuffle=False)
 
         self.model.eval()

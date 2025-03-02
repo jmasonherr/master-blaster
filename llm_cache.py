@@ -7,7 +7,6 @@ import pandas as pd
 from typing import Dict, List, Any
 
 
-
 def load_cache(db_path: str):
     """
     Load the cache database into a pandas DataFrame for analysis.
@@ -100,7 +99,6 @@ class LLMCache:
         Returns:
             A unique hash string for this request
         """
-
 
         # Create a hash of the combined inputs
         combined = f"{model}|{prompt}"

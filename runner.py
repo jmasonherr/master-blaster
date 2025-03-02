@@ -271,9 +271,8 @@ def create_round_comparison_plots(freeal, log_dir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run FreeAL experiments")
     parser.add_argument("--dataset", type=str, default="imdb", help="Dataset to use")
-    parser.add_argument("--no-cache", action="store_true", help="Disable LLM caching")
     parser.add_argument(
-        "--samples", type=int, default=50, help="Maximum samples to use"
+        "--samples", type=int, default=35, help="Maximum samples to use"
     )
     parser.add_argument(
         "--iterations", type=int, default=3, help="Number of FreeAL iterations"
@@ -286,7 +285,7 @@ if __name__ == "__main__":
 
     run_experiment(
         dataset_name=args.dataset,
-        use_cache=True, #not args.no_cache,
+        use_cache=True,
         max_samples=args.samples,
         iterations=args.iterations,
         output_dir=args.output_dir,

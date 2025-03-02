@@ -29,8 +29,8 @@ def load_imdb_dataset(max_samples=None, test_size=0.2, seed=42):
 
     # Limit samples if specified
     if max_samples and max_samples < len(all_df):
-        all_df = all_df[:max_samples]
-        #all_df = all_df.sample(max_samples, random_state=seed)
+        #all_df = all_df[:max_samples]
+        all_df = all_df.sample(max_samples, random_state=seed)
 
     # Map the labels (0=negative, 1=positive)
     all_df["label_text"] = all_df["label"].map({0: "negative", 1: "positive"})

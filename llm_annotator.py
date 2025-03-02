@@ -168,9 +168,7 @@ class LLMAnnotator:
                 # Check cache first if enabled
                 cached_response = None
                 if self.use_cache:
-                    cached_response = self.cache.get(
-                        self.model, text, message_list
-                    )
+                    cached_response = self.cache.get(self.model, text, message_list)
 
                 if cached_response:
                     print("Using cached response")

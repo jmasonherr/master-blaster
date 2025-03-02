@@ -10,8 +10,8 @@ import json
 from llm_annotator import LLMAnnotator
 
 # Create mock types to simulate Anthropic's response structure
-MockContent = namedtuple('MockContent', ['text'])
-MockResponse = namedtuple('MockResponse', ['content', 'model_dump'])
+MockContent = namedtuple("MockContent", ["text"])
+MockResponse = namedtuple("MockResponse", ["content", "model_dump"])
 
 
 class TestLLMAnnotator(unittest.TestCase):
@@ -19,21 +19,23 @@ class TestLLMAnnotator(unittest.TestCase):
         """Set up test fixtures"""
         self.api_key = "test_api_key"
         self.instruction = "Classify the sentiment of the text"
-        self.task_description = "Determine if the text expresses positive, negative, or neutral sentiment"
+        self.task_description = (
+            "Determine if the text expresses positive, negative, or neutral sentiment"
+        )
         self.label_names = ["positive", "negative", "neutral"]
         self.examples = [
             ("I love this product!", "positive"),
             ("This is terrible, don't buy it", "negative"),
-            ("The product arrived on time", "neutral")
+            ("The product arrived on time", "neutral"),
         ]
 
         # Create a temporary file for the cache
-        self.temp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        self.temp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         self.temp_db.close()
         self.cache_path = self.temp_db.name
 
         # Create mock for Anthropic client
-        self.mock_anthropic_patcher = patch('anthropic.Anthropic', autospec=True)
+        self.mock_anthropic_patcher = patch("anthropic.Anthropic", autospec=True)
         self.mock_anthropic = self.mock_anthropic_patcher.start()
 
         # Create a mock instance for the Anthropic client
@@ -44,12 +46,12 @@ class TestLLMAnnotator(unittest.TestCase):
         mock_content = MockContent(text="positive")
         mock_response = MockResponse(
             content=[mock_content],
-            model_dump=lambda: {"content": [{"text": "positive"}]}
+            model_dump=lambda: {"content": [{"text": "positive"}]},
         )
         self.mock_client.messages.create.return_value = mock_response
 
         # Mock for LLMCache
-        self.mock_cache_patcher = patch('llm_annotator.LLMCache')
+        self.mock_cache_patcher = patch("llm_annotator.LLMCache")
         self.mock_cache_class = self.mock_cache_patcher.start()
         self.mock_cache = MagicMock()
         self.mock_cache_class.return_value = self.mock_cache
@@ -74,7 +76,7 @@ class TestLLMAnnotator(unittest.TestCase):
                 instruction=self.instruction,
                 task_description=self.task_description,
                 label_names=self.label_names,
-                examples=[]  # Empty list should raise ValueError
+                examples=[],  # Empty list should raise ValueError
             )
 
     def test_init_creates_anthropic_client(self):
@@ -86,7 +88,7 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Check if Anthropic client was created with correct API key
@@ -108,7 +110,7 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Reset mock to clear the initialization call
@@ -120,16 +122,16 @@ class TestLLMAnnotator(unittest.TestCase):
         responses = [
             MockResponse(
                 content=[MockContent(text="positive")],
-                model_dump=lambda: {"content": [{"text": "positive"}]}
+                model_dump=lambda: {"content": [{"text": "positive"}]},
             ),
             MockResponse(
                 content=[MockContent(text="negative")],
-                model_dump=lambda: {"content": [{"text": "negative"}]}
+                model_dump=lambda: {"content": [{"text": "negative"}]},
             ),
             MockResponse(
                 content=[MockContent(text="neutral")],
-                model_dump=lambda: {"content": [{"text": "neutral"}]}
-            )
+                model_dump=lambda: {"content": [{"text": "neutral"}]},
+            ),
         ]
         self.mock_client.messages.create.side_effect = responses
 
@@ -137,7 +139,7 @@ class TestLLMAnnotator(unittest.TestCase):
         texts = [
             "I really enjoyed this movie!",
             "The service was awful.",
-            "It was okay, nothing special."
+            "It was okay, nothing special.",
         ]
         results = annotator.annotate_batch(texts)
 
@@ -154,7 +156,7 @@ class TestLLMAnnotator(unittest.TestCase):
         expected_results = [
             ("I really enjoyed this movie!", "positive"),
             ("The service was awful.", "negative"),
-            ("It was okay, nothing special.", "neutral")
+            ("It was okay, nothing special.", "neutral"),
         ]
         self.assertEqual(results, expected_results)
 
@@ -166,7 +168,7 @@ class TestLLMAnnotator(unittest.TestCase):
             task_description=self.task_description,
             label_names=self.label_names,
             examples=self.examples,
-            use_cache=False
+            use_cache=False,
         )
 
         # Test exact match
@@ -176,7 +178,9 @@ class TestLLMAnnotator(unittest.TestCase):
         self.assertEqual(annotator._find_best_label_match("POSITIVE"), "positive")
 
         # Test with label: format
-        self.assertEqual(annotator._find_best_label_match("Label: negative"), "negative")
+        self.assertEqual(
+            annotator._find_best_label_match("Label: negative"), "negative"
+        )
 
         # Test fuzzy matching
         self.assertEqual(annotator._find_best_label_match("positiv"), "positive")
@@ -193,7 +197,7 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Reset mock to clear the initialization call
@@ -213,13 +217,13 @@ class TestLLMAnnotator(unittest.TestCase):
         # Check if cache was updated
         self.mock_cache.store.assert_called_once()
 
-    @patch('random.sample')
+    @patch("random.sample")
     def test_examples_sampling(self, mock_random_sample):
         """Test that examples are sampled correctly when there are more than examples_per_prompt"""
         # Set up the mock to return a predetermined sample
         sample = [
             ("I love this product!", "positive"),
-            ("This is terrible, don't buy it", "negative")
+            ("This is terrible, don't buy it", "negative"),
         ]
         mock_random_sample.return_value = sample
 
@@ -227,7 +231,7 @@ class TestLLMAnnotator(unittest.TestCase):
         extended_examples = self.examples + [
             ("Amazing experience!", "positive"),
             ("I hate it", "negative"),
-            ("Just as expected", "neutral")
+            ("Just as expected", "neutral"),
         ]
 
         annotator = LLMAnnotator(
@@ -238,7 +242,7 @@ class TestLLMAnnotator(unittest.TestCase):
             examples=extended_examples,
             examples_per_prompt=2,  # We want to sample only 2 examples
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Check that random.sample was called with the right arguments
@@ -256,7 +260,7 @@ class TestLLMAnnotator(unittest.TestCase):
             max_retries=3,
             retry_delay=0,  # Set to 0 for faster tests
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Reset mock to clear the initialization call
@@ -270,8 +274,8 @@ class TestLLMAnnotator(unittest.TestCase):
             Exception("API Error"),
             MockResponse(
                 content=[MockContent(text="positive")],
-                model_dump=lambda: {"content": [{"text": "positive"}]}
-            )
+                model_dump=lambda: {"content": [{"text": "positive"}]},
+            ),
         ]
 
         # Call the method that uses the API
@@ -299,7 +303,7 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Reset mocks
@@ -312,9 +316,7 @@ class TestLLMAnnotator(unittest.TestCase):
         annotator.cache_misses = 0
 
         # Set up cache to return a hit
-        self.mock_cache.get.return_value = {
-            "content": [{"text": "positive"}]
-        }
+        self.mock_cache.get.return_value = {"content": [{"text": "positive"}]}
 
         # Call the API method
         result = annotator._call_anthropic_api("Test text")
@@ -344,7 +346,7 @@ class TestLLMAnnotator(unittest.TestCase):
             task_description=self.task_description,
             label_names=self.label_names,
             examples=self.examples,
-            use_cache=False
+            use_cache=False,
         )
 
         # Check that cache was not created
@@ -372,13 +374,13 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Set up mock to return stats
         self.mock_cache.get_stats.return_value = {
             "total_entries": 10,
-            "by_model": {"claude-3": 10}
+            "by_model": {"claude-3": 10},
         }
 
         # Call the method
@@ -395,7 +397,7 @@ class TestLLMAnnotator(unittest.TestCase):
             task_description=self.task_description,
             label_names=self.label_names,
             examples=self.examples,
-            use_cache=False
+            use_cache=False,
         )
 
         # Call the method
@@ -414,24 +416,23 @@ class TestLLMAnnotator(unittest.TestCase):
             label_names=self.label_names,
             examples=self.examples,
             use_cache=True,
-            cache_path=self.cache_path
+            cache_path=self.cache_path,
         )
 
         # Reset mocks
         self.mock_client.messages.create.reset_mock()
 
         # New demonstrations to use
-        new_demos = [
-            ("This is great!", "positive"),
-            ("This is awful!", "negative")
-        ]
+        new_demos = [("This is great!", "positive"), ("This is awful!", "negative")]
 
         # Call annotate_batch with custom demonstrations
         texts = ["Test text"]
         annotator.annotate_batch(texts, demonstrations=new_demos)
 
         # Check that initialization was called with new demos
-        self.assertEqual(self.mock_client.messages.create.call_count, 2)  # Init + annotation
+        self.assertEqual(
+            self.mock_client.messages.create.call_count, 2
+        )  # Init + annotation
 
 
 if __name__ == "__main__":
