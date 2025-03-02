@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+api_key.py
+
+experiments/
+benchmarks/
+FreeAL-main/
+evaluation_results/
+.cursor
+.DS_Store
+.idea
