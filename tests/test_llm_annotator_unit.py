@@ -211,11 +211,8 @@ class TestLLMAnnotator(unittest.TestCase):
         # Check if a new thread was created
         self.mock_client.messages.create.assert_called_once()
 
-        # Check if cache was queried
-        self.mock_cache.get.assert_called_once()
-
-        # Check if cache was updated
-        self.mock_cache.store.assert_called_once()
+        # Check if cache was not queried
+        self.mock_cache.get.assert_not_called()
 
     @patch("random.sample")
     def test_examples_sampling(self, mock_random_sample):

@@ -1,4 +1,5 @@
 # Unit and Integration Tests for FreeAL
+
 import pytest
 from unittest.mock import MagicMock, patch, mock_open
 
@@ -96,7 +97,7 @@ def test_run_iteration(mock_sleep, freeal_instance, mock_components):
 
     # Run iteration
     with patch("tqdm.tqdm", lambda x: x):  # Mock tqdm to avoid progress bar in tests
-        result = freeal_instance.run_iteration(unlabeled_data, validation_data)
+        result = freeal_instance.run_iteration(unlabeled_data, validation_data) # Add validation_data
 
     # Verify LLM annotator was called
     mock_components["llm_annotator"].annotate_batch.assert_called_once()
@@ -178,13 +179,13 @@ def test_convergence_early_stopping(freeal_instance):
     # Second iteration has minimal improvement (below threshold)
     second_result = {"val_accuracy": 0.803, "clean_samples": 2}
 
-    # Mock run_iteration to return our predefined results
+    # Create a MagicMock for run_iteration
+    mock_run_iteration = MagicMock(side_effect=[first_result, second_result])
+
     with (
         patch.object(freeal_instance, "_log_state"),
         patch.object(freeal_instance, "_sample_initial_data"),
-        patch.object(
-            freeal_instance, "run_iteration", side_effect=[first_result, second_result]
-        ),
+        patch.object(freeal_instance, "run_iteration", new=mock_run_iteration), # Use new to assign the mock
         patch("os.makedirs"),
     ):
 
@@ -197,7 +198,7 @@ def test_convergence_early_stopping(freeal_instance):
         )
 
     # Should have called run_iteration only twice due to early stopping
-    assert freeal_instance.run_iteration.call_count == 2
+    assert mock_run_iteration.call_count == 2
 
 
 # Integration test with more realistic data flow
