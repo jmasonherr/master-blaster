@@ -10,6 +10,7 @@ dependencies = [
     "black>=25.1.0",
     "codebase-to-text>=1.0.7",
     "datasets>=3.3.2",
+    "kagglehub>=0.3.10",
     "matplotlib>=3.10.1",
     "numpy>=2.2.3",
     "openai>=1.65.2",

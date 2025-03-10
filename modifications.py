@@ -101,9 +101,9 @@ if __name__ == "__main__":
         "Restaurant dinner with friends.",
     ]
 
-    for sentence in sentences:
-        print(f"Original: {sentence}")
-        print(f"Mangled (level 1): {mangle_sentence(sentence)}")
-        print(f"Mangled (level 2): {mangle_sentence(sentence, mangling_level=2)}")
-        print(f"Mangled (level 3): {mangle_sentence(sentence, mangling_level=3)}")
+    for s in sentences:
+        print(f"Original: {s}")
+        print(f"Mangled (level 1): {mangle_sentence(s)}")
+        print(f"Mangled (level 2): {mangle_sentence(s, mangling_level=2)}")
+        print(f"Mangled (level 3): {mangle_sentence(s, mangling_level=3)}")
         print("-" * 20)
